@@ -21,39 +21,13 @@
                    monokai-theme
                    multiple-cursors
                    paredit
-                   pretty-lambdada
-                   undo-tree
                    slime
+                   use-package
                    ))
        (packages (remove-if 'package-installed-p packages)))
   (when packages
     (package-refresh-contents)
     (mapc 'package-install packages)))
-
-;; Devilry-mode
-(when (file-exists-p "~/.emacs.d/plugins/devilry-mode")
-  (add-to-list 'load-path "~/.emacs.d/plugins/devilry-mode/")
-  (require 'devilry-mode))
-
-;; Racket
-(setq geiser-active-implementations '(racket))
-
-;; Pretty lambda
-(add-to-list 'pretty-lambda-auto-modes 'geiser-repl-mode)
-(pretty-lambda-for-modes)
-
-;; Paredit
-(dolist (mode pretty-lambda-auto-modes)
-  ;; add paredit-mode to all mode-hooks
-  (add-hook (intern (concat (symbol-name mode) "-hook")) 'paredit-mode))
-
-(dolist (mode '(slime-repl-mode
-                geiser-repl-mode
-                ielm-mode
-                clojure-mode
-                cider-repl-mode))
-  (add-to-list 'pretty-lambda-auto-modes mode))
-(pretty-lambda-for-modes)
 
 
 (defun activate-slime-helper ()
@@ -79,8 +53,6 @@
 ;; Show files beneth
 (ido-vertical-mode 1)
 
-;; use undo-tree-mode globally
-(global-undo-tree-mode 1)
 
 ;; get the default config for auto-complete (downloaded with
 ;; package-manager)
@@ -104,13 +76,16 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-enabled-themes (quote (tango-dark))))
+ '(custom-enabled-themes (quote (tango-dark)))
+ '(package-selected-packages
+   (quote
+    (company-irony-c-headers multi-term company-irony use-package slime paredit multiple-cursors monokai-theme markdown-mode ido-vertical-mode company ac-geiser))))
 
 (setq
  auto-save-default                        t ; nil to disable auto-save
  abbrev-mode                              t ; Global abbrev mode
  c-default-style                    "linux" ; Nice c indention.
- c-basic-offset                           4 ; Indentation
+ c-basic-offset                           8 ; Indentation
  js-indent-level                          2 ; js indentation
  default-directory                     "~/" ; Default home directory
  inhibit-startup-message                  t ; Removes start-up screen
@@ -123,7 +98,7 @@
 (c-set-offset 'comment-intro 0)
 
 (setq-default indent-tabs-mode nil) ; Use spaces instead of tabs
-
+(setq-default c-basic-offset 8)
 
 ;; To avoid file system clutter we put all auto saved files in a single
 ;; directory.
@@ -147,7 +122,7 @@ located.")
 
 ;; Less toolbars, more text. We have shortcuts
 (menu-bar-mode 0)      ; Hide menu
-(tool-bar-mode 1)      ; Hide toolbar
+(tool-bar-mode 0)      ; Hide toolbar
 (scroll-bar-mode 0)    ; Hide scrollbar
 
 
@@ -168,8 +143,6 @@ located.")
 ;; show vertically
 (ido-vertical-mode 1)
 
-;; use undo-tree-mode globally
-(global-undo-tree-mode 1)
 
 ;; Word-wrapping
 (add-hook 'text-mode-hook 'visual-line-mode)
@@ -349,3 +322,38 @@ located.")
 (global-set-key (kbd "C-c e")  'mc/edit-lines)
 (global-set-key (kbd "C-c a")  'mc/mark-all-like-this)
 (global-set-key (kbd "C-c n")  'mc/mark-next-like-this)
+
+(use-package company
+             :ensure t
+             :config
+             (setq company-idle-delay 0)
+             (setq company-minimum-prefix-length 3))
+
+(with-eval-after-load 'company
+  (define-key company-active-map (kbd "C-n") #'company-select-next)
+  (define-key company-active-map (kbd "C-p") #'company-select-previous))
+
+(use-package company-irony
+  :ensure t
+  :config
+  (require 'company)
+  (add-to-list 'company-backends 'company-irony)
+  (add-to-list 'company-backends '(company-irony-c-headers company-irony)))
+
+(use-package irony
+  :ensure t
+  :config
+  (add-hook 'c++-mode-hook 'irony-mode)
+  (add-hook 'c-mode-hook 'irony-mode)
+  (add-hook 'irony-mode-hook 'irony-cdb-autosetup-compile-options))
+
+
+(with-eval-after-load 'company
+  (add-hook 'c++-mode-hook 'company-mode)
+  (add-hook 'c-mode-hook 'company-mode))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
