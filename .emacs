@@ -23,6 +23,7 @@
                    paredit
                    slime
                    use-package
+                   haskell-mode
                    ))
        (packages (remove-if 'package-installed-p packages)))
   (when packages
@@ -77,9 +78,10 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes (quote (tango-dark)))
+ '(haskell-process-type (quote cabal-repl))
  '(package-selected-packages
    (quote
-    (company-irony-c-headers multi-term company-irony use-package slime paredit multiple-cursors monokai-theme markdown-mode ido-vertical-mode company ac-geiser))))
+    (ein haskell-mode company-irony-c-headers multi-term company-irony use-package slime paredit multiple-cursors monokai-theme markdown-mode ido-vertical-mode company ac-geiser))))
 
 (setq
  auto-save-default                        t ; nil to disable auto-save
@@ -323,6 +325,7 @@ located.")
 (global-set-key (kbd "C-c a")  'mc/mark-all-like-this)
 (global-set-key (kbd "C-c n")  'mc/mark-next-like-this)
 
+;;Company-mode
 (use-package company
              :ensure t
              :config
@@ -338,7 +341,8 @@ located.")
   :config
   (require 'company)
   (add-to-list 'company-backends 'company-irony)
-  (add-to-list 'company-backends '(company-irony-c-headers company-irony)))
+  (add-to-list 'company-backends '(company-irony-c-headers company-irony))
+  (add-to-list 'company-backends '(company-capf company-dabbrev-code)))
 
 (use-package irony
   :ensure t
@@ -350,7 +354,20 @@ located.")
 
 (with-eval-after-load 'company
   (add-hook 'c++-mode-hook 'company-mode)
-  (add-hook 'c-mode-hook 'company-mode))
+  (add-hook 'c-mode-hook 'company-mode)
+  (add-hook 'haskell-mode-hook 'company-mode))
+
+;; Haskell
+(add-hook 'haskell-mode-hook 'turn-on-haskell-unicode-input-method)
+(add-hook 'haskell-mode-hook 'interactive-haskell-mode)
+(add-hook 'haskell-mode-hook 'haskell-decl-scan-mode)
+
+;;Which-func
+(use-package which-func
+  :ensure t)
+(eval-after-load 'which-func
+  '(add-to-list 'which-func-modes 'haskell-mode))
+
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
